@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Hiragana Quiz</title>
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&display=swap');
+    body {
+      font-family: 'Fredoka', sans-serif;
+      background-color: #ffeef4;
+      color: #333;
+      text-align: center;
+      padding: 2rem;
+    }
+    .card {
+      background: #fff;
+      border: 4px dashed #ffc0cb;
+      padding: 2rem;
+      border-radius: 2rem;
+      box-shadow: 0 0 10px #f9c5d5;
+      max-width: 600px;
+      margin: auto;
+      animation: fadeIn 1s ease-in-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    .animated-bg {
+      background: linear-gradient(270deg, #ffd6e8, #ffeef4, #ffc0cb);
+      background-size: 600% 600%;
+      animation: moveBG 10s ease infinite;
+    }
+    @keyframes moveBG {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    button {
+      background-color: #ffb6c1;
+      border: none;
+      border-radius: 1rem;
+      padding: 1rem 2rem;
+      font-size: 1.2rem;
+      margin: 0.5rem;
+      cursor: pointer;
+      color: white;
+      transition: background 0.3s ease;
+    }
+    button:hover {
+      background-color: #ff69b4;
+    }
+    .progress {
+      height: 20px;
+      background: #fce4ec;
+      border-radius: 10px;
+      margin: 1rem 0;
+    }
+    .progress-bar {
+      height: 100%;
+      background: #f06292;
+      width: 0%;
+      border-radius: 10px;
+    }
+    img {
+      max-height: 100px;
+      margin: 1rem 0;
+      display: block;
+    }
+  </style>
+</head>
+<body class="animated-bg">
+<div class="card" id="login">
+<h1>Welcome to the Hiragana Quiz!</h1>
+<p>Please enter your name to begin:</p>
+<input id="username" placeholder="Your Name" style="padding: 0.5rem; font-size: 1rem; border-radius: 0.5rem; border: 1px solid #ccc;" type="text"/>
+<br/><br/>
+<button onclick="startQuiz()">Start Quiz</button>
+</div>
+<div class="card" id="quiz" style="display:none">
+<h2 id="question"></h2>
+
+<div id="choices"></div>
+<div id="feedback"></div>
+<div class="progress">
+<div class="progress-bar" id="progress-bar"></div>
+</div>
+<p id="score"></p>
+<div id="end-buttons" style="display:none">
+<p id="quote"></p>
+<button onclick="restartQuiz()">Restart</button>
+<button onclick="goToHome()">Exit</button>
+</div>
+</div>
+<audio id="clickSound" src="https://www.soundjay.com/button/sounds/button-16.mp3"></audio>
+<audio id="correctSound" src="https://www.soundjay.com/button/sounds/button-4.mp3"></audio>
+<audio id="wrongSound" src="https://www.soundjay.com/button/sounds/button-10.mp3"></audio>
+<script>
+let userName = "";
+function startQuiz() {
+  const input = document.getElementById("username");
+  if (input.value.trim() === "") {
+    alert("Please enter your name first.");
+    return;
+  }
+  userName = input.value.trim();
+  document.getElementById("login").style.display = "none";
+  document.getElementById("quiz").style.display = "block";
+  quizData = shuffle(quizData);
+  current = 0;
+  score = 0;
+  showQuestion();
+}
+
+function goToHome() {
+  location.reload();
+}
+
+const quizBase = [
+  { hiragana: "あ", romanji: "a", image: "https://upload.wikimedia.org/wikipedia/commons/4/4c/Ame-rain.jpg", audio: "https://assets.codepen.io/6093409/a.mp3" },
+  { hiragana: "い", romanji: "i", image: "https://upload.wikimedia.org/wikipedia/commons/6/6f/Shiba_inu.jpg", audio: "https://assets.codepen.io/6093409/i.mp3" },
+  { hiragana: "う", romanji: "u", image: "https://upload.wikimedia.org/wikipedia/commons/0/03/Umi-beach.jpg", audio: "https://assets.codepen.io/6093409/u.mp3" },
+  { hiragana: "え", romanji: "e", image: "https://upload.wikimedia.org/wikipedia/commons/2/2e/Eki-station.jpg", audio: "https://assets.codepen.io/6093409/e.mp3" },
+  { hiragana: "お", romanji: "o", image: "https://upload.wikimedia.org/wikipedia/commons/0/0b/Ocha-tea.jpg", audio: "https://assets.codepen.io/6093409/o.mp3" },
+  { hiragana: "か", romanji: "ka", image: "", audio: "" },
+  { hiragana: "き", romanji: "ki", image: "", audio: "" },
+  { hiragana: "く", romanji: "ku", image: "", audio: "" },
+  { hiragana: "け", romanji: "ke", image: "", audio: "" },
+  { hiragana: "こ", romanji: "ko", image: "", audio: "" },
+  { hiragana: "さ", romanji: "sa", image: "", audio: "" },
+  { hiragana: "し", romanji: "shi", image: "", audio: "" },
+  { hiragana: "す", romanji: "su", image: "", audio: "" },
+  { hiragana: "せ", romanji: "se", image: "", audio: "" },
+  { hiragana: "そ", romanji: "so", image: "", audio: "" },
+  { hiragana: "た", romanji: "ta", image: "", audio: "" },
+  { hiragana: "ち", romanji: "chi", image: "", audio: "" },
+  { hiragana: "つ", romanji: "tsu", image: "", audio: "" },
+  { hiragana: "て", romanji: "te", image: "", audio: "" },
+  { hiragana: "と", romanji: "to", image: "", audio: "" },
+];
+
+const quotesPositive = [
+  "Success is the sum of small efforts repeated every day.",
+  "Keep going, you're doing great!",
+  "Practice makes perfect — you're on your way!",
+  "You’ve got this! Learning a language is a journey."
+];
+
+const quotesEncouraging = [
+  "Don’t be discouraged — even mistakes help you grow!",
+  "Failure is the opportunity to begin again more wisely.",
+  "Mistakes are proof you are trying.",
+  "Every expert was once a beginner."
+];
+
+let quizData = [];
+quizBase.forEach(q => {
+  quizData.push({ question: `What is the reading of 「${q.hiragana}」?`, correct: q.romanji, image: q.image, audio: q.audio });
+  quizData.push({ question: `Which Hiragana represents '${q.romanji}'?`, correct: q.hiragana, image: q.image, audio: q.audio });
+});
+
+function shuffle(arr) {
+  return arr.sort(() => Math.random() - 0.5);
+}
+
+let current = 0;
+let score = 0;
+
+function playSound(id) {
+  const audio = document.getElementById(id);
+  audio.currentTime = 0;
+  audio.play();
+}
+
+function showQuestion() {
+  const q = quizData[current];
+  document.getElementById("question").innerText = q.question;
+  
+  
+
+  const options = quizBase.map(x => q.correct.length > 1 ? x.romanji : x.hiragana);
+  const shuffled = [...new Set([q.correct, ...shuffle(options).slice(0, 3)])].sort(() => Math.random() - 0.5);
+  const choiceContainer = document.getElementById("choices");
+  choiceContainer.innerHTML = "";
+  shuffled.forEach(choice => {
+    const btn = document.createElement("button");
+    btn.innerText = choice;
+    btn.onclick = () => checkAnswer(choice, q.correct);
+    choiceContainer.appendChild(btn);
+  });
+}
+
+function checkAnswer(selected, correct) {
+  playSound("clickSound");
+  const feedback = document.getElementById("feedback");
+  if (selected === correct) {
+    score++;
+    feedback.innerText = "✅ Correct!";
+    playSound("correctSound");
+  } else {
+    feedback.innerText = `❌ Wrong! The correct answer is: ${correct}`;
+    playSound("wrongSound");
+  }
+  current++;
+  updateProgress();
+  setTimeout(() => {
+    if (current < quizData.length) {
+      showQuestion();
+    } else {
+      showResult();
+    }
+  }, 1500);
+}
+
+function updateProgress() {
+  const percent = (current / quizData.length) * 100;
+  document.getElementById("progress-bar").style.width = percent + "%";
+  document.getElementById("score").innerText = `Score: ${score}/${quizData.length}`;
+}
+
+function showResult() {
+  const feedbackQuote = score >= quizData.length * 0.7
+    ? shuffle(quotesPositive)[0]
+    : shuffle(quotesEncouraging)[0];
+  document.getElementById("question").innerText = `🎉 Quiz Completed!`; 
+  document.getElementById("choices").innerHTML = "";
+  document.getElementById("feedback").innerText = `Final Score: ${score}/${quizData.length}`;
+  document.getElementById("quote").innerText = `\"${feedbackQuote}\"\nThank you, ${userName}!`; 
+  document.getElementById("end-buttons").style.display = "block";
+}
+
+function restartQuiz() {
+  quizData = shuffle(quizData);
+  current = 0;
+  score = 0;
+  document.getElementById("end-buttons").style.display = "none";
+  document.getElementById("feedback").innerText = "";
+  document.getElementById("score").innerText = "";
+  document.getElementById("progress-bar").style.width = "0%";
+  showQuestion();
+}
+</script>
+</body>
+</html>
